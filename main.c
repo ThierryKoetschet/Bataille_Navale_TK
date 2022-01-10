@@ -113,7 +113,7 @@ void menu_aide() {
 }
 
 void menu_jouer() {
-    int score = 2;
+    int score = 5;
     char nom_joueur[50];
     int index_col = 0;
     char choix_coup[2];
@@ -123,7 +123,7 @@ void menu_jouer() {
     init_coup();
 
     printf("JOUER\n");
-    printf("=====\n");
+    printf("=====\n\n");
     printf("Votre nom :");
     fflush(stdin);
     scanf("%s", &nom_joueur);
@@ -198,14 +198,24 @@ void menu_jouer() {
             score--;
         }
     }
-    while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' || score > 0);
+    while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' && score > 0);
 
-    printf("Vous avez perdu !\n\n");
-    printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
-    fflush(stdin);
-    scanf("%s", retourner_menu_accueil);
-    if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
-        menu_accueil();
+    if (score < 1) {
+        printf("DOMMAGE ! Vous avez perdu !\n\n");
+        printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+        fflush(stdin);
+        scanf("%s", retourner_menu_accueil);
+        if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+            menu_accueil();
+        }
+    }
+    if (choix_coup[0] == 'q' || choix_coup[0] == 'Q') {
+        printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+        fflush(stdin);
+        scanf("%s", retourner_menu_accueil);
+        if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+            menu_accueil();
+        }
     }
 }
 
