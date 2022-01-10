@@ -191,10 +191,10 @@ void menu_jouer() {
         }
         if (carte[index_col][index_ligne] == 1) {
             printf("Touche ! \n");
-            coup_joue[index_col][index_ligne] = 1;
+            coup_joue[index_col][index_ligne] = 88;
         } else {
             printf("Manque !\n\n");
-            coup_joue[index_col][index_ligne] = 9;
+            coup_joue[index_col][index_ligne] = 48;
             score--;
         }
     }
@@ -230,7 +230,7 @@ void init_carte() {
 void init_coup() {
     for (int x = 0; x < MAX_TAB; x++) {
         for (int y = 0; y < MAX_TAB; y++) {
-            coup_joue[y][x] = 0;
+            coup_joue[y][x] = 126;
         }
     }
 }
@@ -242,7 +242,7 @@ void afficher_coup() {
         index_col++;
         printf("%3d", index_col);
         for (int x = 0; x < MAX_TAB; x++) {
-            printf("%3i", coup_joue[x][y]);
+            printf("%3c", coup_joue[x][y]);
         }
         printf("\n");
     }
