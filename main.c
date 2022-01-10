@@ -90,7 +90,8 @@ void menu_aide() {
     printf("Lorsque vous ratez votre cible, le jeu annoncera 'Manque'\n");
     printf("Lorsque vous atteignez votre cible, le jeu annoncera 'Touche'\n");
     printf("Lorsque vous abattez votre cible, le jeu annoncera 'Touche-coule'\n");
-    printf("Le but du jeu est de couler tous les bateaux de votre adversaire avant que celui-ci ne coule tous les votres\n\n");
+    printf("Le but du jeu est de couler tous les bateaux de votre adversaire avant que celui-ci ne coule tous les votres\n");
+    printf("Vous avez la possibilite de jouer le coup 'Q' pour quitter la partie en cours de route\n\n");
     if (continuer_aide() == 1) {
         printf("Description de la flotte:\n");
         printf("- Un zodiaque de 1 case\n");
@@ -134,7 +135,7 @@ void menu_jouer() {
         printf("\n");
         //afficher_carte();
         demander_coup(choix_coup);
-        printf("Vous avez choisi : %s\n", choix_coup);
+        printf("\n");
 
         switch (choix_coup[0]) {
             case 'A':
@@ -183,19 +184,21 @@ void menu_jouer() {
                 menu_aide();
                 break;
         }
-        int index_ligne = choix_coup[1] - DECAL;
-        if (index_ligne == 0) {
-            if (choix_coup[2] == '0') {
-                index_ligne = 9;
+        if (choix_coup[0] != 'Q' && choix_coup[0] != 'q') {
+            int index_ligne = choix_coup[1] - DECAL;
+            if (index_ligne == 0) {
+                if (choix_coup[2] == '0') {
+                    index_ligne = 9;
+                }
             }
-        }
-        if (carte[index_col][index_ligne] == 1) {
-            printf("Touche ! \n");
-            coup_joue[index_col][index_ligne] = 88;
-        } else {
-            printf("Manque !\n\n");
-            coup_joue[index_col][index_ligne] = 48;
-            score--;
+            if (carte[index_col][index_ligne] == 1) {
+                printf("Touche ! \n");
+                coup_joue[index_col][index_ligne] = 88;
+            } else {
+                printf("Manque !\n\n");
+                coup_joue[index_col][index_ligne] = 48;
+                score--;
+            }
         }
     }
     while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' && score > 0);
