@@ -13,6 +13,12 @@ void menu_aide();
 
 void menu_jouer();
 
+int test_fin_partie();
+
+void bateau_touche();
+
+int touche_coule();
+
 void init_coup();
 
 void init_carte();
@@ -23,9 +29,9 @@ void afficher_carte();
 
 void demander_coup();
 
-//toutes les déclarations de fonctions ci-dessus sont faites pour être utilisées dans les différentes fonctions qui suivent
 int carte[MAX_TAB][MAX_TAB];
 char coup_joue[MAX_TAB][MAX_TAB];
+//toutes les déclarations de fonctions ci-dessus sont faites pour être utilisées dans les différentes fonctions qui suivent
 
 void clear_screen() {
 #ifdef __unix__
@@ -54,12 +60,15 @@ int menu_accueil() {
     } while (choix < 1 || choix > 3);
     switch (choix) {
         case 1:
+            clear_screen();
             menu_aide();
             break;
         case 2:
+            clear_screen();
             menu_jouer();
             break;
         case 3:
+            clear_screen();
             printf("MEILLEURS SCORES\n");
             break;
         default:
@@ -87,11 +96,11 @@ void menu_aide() {
 
     printf("Vous annoncerez a tour de role une case de la grille que vous souhaitez attaquer\n");
     printf("Vous commencerez par saisir la colonne puis la ligne que vous désirez attaquer\n");
-    printf("Lorsque vous ratez votre cible, le jeu annoncera 'Manque'\n");
-    printf("Lorsque vous atteignez votre cible, le jeu annoncera 'Touche'\n");
-    printf("Lorsque vous abattez votre cible, le jeu annoncera 'Touche-coule'\n");
+    printf("Lorsque vous ratez votre cible, le jeu annoncera 'Manque' et un 0 apparaitra sur la grille de jeu\n");
+    printf("Lorsque vous atteignez votre cible, le jeu annoncera 'Touche' et un X apparaitra sur la grille de jeu\n");
+    printf("Lorsque vous abattez votre cible, le jeu annoncera 'Touche-coule' un # apparaitra sur la grille de jeu\n");
     printf("Le but du jeu est de couler tous les bateaux de votre adversaire avant que celui-ci ne coule tous les votres\n");
-    printf("Vous avez la possibilite de jouer le coup 'Q' pour quitter la partie en cours de route\n\n");
+    printf("Vous avez la possibilite de jouer le coup 'Q' pour quitter la partie en cours de jeu\n\n");
     if (continuer_aide() == 1) {
         printf("Description de la flotte:\n");
         printf("- Un zodiaque de 1 case\n");
@@ -109,12 +118,13 @@ void menu_aide() {
     fflush(stdin);
     scanf("%s", retourner_menu_accueil);
     if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+        clear_screen();
         menu_accueil();
     }
 }
 
 void menu_jouer() {
-    int score = 5;
+    int score = 50;
     char nom_joueur[50];
     int index_col = 0;
     char choix_coup[2];
@@ -136,6 +146,7 @@ void menu_jouer() {
         //afficher_carte();
         demander_coup(choix_coup);
         printf("\n");
+        clear_screen();
 
         switch (choix_coup[0]) {
             case 'A':
@@ -191,20 +202,38 @@ void menu_jouer() {
                     index_ligne = 9;
                 }
             }
-            if (carte[index_col][index_ligne] == 1) {
-                printf("Touche ! \n");
-                coup_joue[index_col][index_ligne] = 88;
-            } else {
-                printf("Manque !\n\n");
+            if (carte[index_col][index_ligne] >= 1) {
+                bateau_touche(carte[index_col][index_ligne], index_ligne, index_col);
+            }
+            else {
+                printf("MANQUE !\n");
                 coup_joue[index_col][index_ligne] = 48;
                 score--;
             }
         }
-    }
-    while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' && score > 0);
+        test_fin_partie();
+    } while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' && score > 0 && test_fin_partie() < 5);
 
+    if (score >= 1) {
+        printf("Score : %d\n", score);
+        afficher_coup();
+        printf("\nBRAVO ! Vous avez gagne !\n\n");
+
+        FILE *fp;
+        float marks;
+
+        fp = fopen("scores.txt", "a+");
+
+        if (fp == NULL) {
+            printf("Impossible d'ouvrir le fichier\n");
+            exit(1);
+        }
+
+        fprintf(fp, "Nom : %s\t Score : %d\n", nom_joueur, score);
+        fclose(fp);
+    }
     if (score < 1) {
-        printf("DOMMAGE ! Vous avez perdu !\n\n");
+        printf("\nDOMMAGE ! Vous avez perdu !\n\n");
         printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
         fflush(stdin);
         scanf("%s", retourner_menu_accueil);
@@ -213,7 +242,7 @@ void menu_jouer() {
         }
     }
     if (choix_coup[0] == 'q' || choix_coup[0] == 'Q') {
-        printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+        printf("\nSouhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
         fflush(stdin);
         scanf("%s", retourner_menu_accueil);
         if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
@@ -222,22 +251,97 @@ void menu_jouer() {
     }
 }
 
+int test_fin_partie() {
+    int test = 0;
+
+    for (int y = 0; y < MAX_TAB; y++) {
+        for (int x = 0; x < MAX_TAB; x++) {
+            if (coup_joue[x][y] == 35) {
+                test++;
+            }
+        }
+    }
+    return test;
+}
+
+void bateau_touche(int valeur, int ligne, int colonne) {
+    switch (valeur) {
+        case 100:
+            coup_joue[colonne][ligne] = 35;
+            printf("\nTOUCHE-COULE !\n");
+            break;
+        case 200:
+            carte[colonne][ligne] = 210;
+            if (touche_coule(valeur) == 0) {
+                coup_joue[colonne][ligne] = 35;
+                printf("\nTOUCHE-COULE !\n");
+            } else {
+                coup_joue[colonne][ligne] = 88;
+                printf("\nTOUCHE !\n");
+            }
+            break;
+        case 300:
+            carte[colonne][ligne] = 310;
+            if (touche_coule(valeur) == 0) {
+                coup_joue[colonne][ligne] = 35;
+                printf("\nTOUCHE-COULE !\n");
+            } else {
+                coup_joue[colonne][ligne] = 88;
+                printf("\nTOUCHE !\n");
+            }
+            break;
+        case 400:
+            carte[colonne][ligne] = 410;
+            if (touche_coule(valeur) == 0) {
+                coup_joue[colonne][ligne] = 35;
+                printf("\nTOUCHE-COULE !\n");
+            } else {
+                coup_joue[colonne][ligne] = 88;
+                printf("\nTOUCHE !\n");
+            }
+            break;
+        case 500:
+            carte[colonne][ligne] = 510;
+            if (touche_coule(valeur) == 0) {
+                coup_joue[colonne][ligne] = 35;
+                printf("\nTOUCHE-COULE !\n");
+            } else {
+                coup_joue[colonne][ligne] = 88;
+                printf("\nTOUCHE !\n");
+            }
+            break;
+    }
+}
+
+int touche_coule(int valeur) {
+    int retour = 0;
+
+    for (int y = 0; y < MAX_TAB; y++) {
+        for (int x = 0; x < MAX_TAB; x++) {
+            if (carte[x][y] == valeur) {
+                retour++;
+            }
+        }
+    }
+    return retour;
+}
+
 void init_carte() {
-    carte[1][1] = 1;
-    carte[1][3] = 1;
-    carte[2][3] = 1;
-    carte[1][5] = 1;
-    carte[2][5] = 1;
-    carte[3][5] = 1;
-    carte[1][7] = 1;
-    carte[2][7] = 1;
-    carte[3][7] = 1;
-    carte[4][7] = 1;
-    carte[8][0] = 1;
-    carte[8][1] = 1;
-    carte[8][2] = 1;
-    carte[8][3] = 1;
-    carte[8][4] = 1;
+    carte[1][1] = 100;
+    carte[1][3] = 200;
+    carte[2][3] = 200;
+    carte[1][5] = 300;
+    carte[2][5] = 300;
+    carte[3][5] = 300;
+    carte[1][7] = 400;
+    carte[2][7] = 400;
+    carte[3][7] = 400;
+    carte[4][7] = 400;
+    carte[8][0] = 500;
+    carte[8][1] = 500;
+    carte[8][2] = 500;
+    carte[8][3] = 500;
+    carte[8][4] = 500;
 }
 
 void init_coup() {
