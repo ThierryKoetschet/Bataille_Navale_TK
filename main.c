@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
 #define MAX_TAB 10 //constante du nombre de lignes et colonnes de la grille de jeu
-#define DECAL 49
+#define DECAL 49 //constante servant à décaler la valeur du coup joué en un entier
+#define NOMBRE_SCORE_MAX 10 //constante du nombre maximum de scores affichables
+#define MAX_CHAR_NAME 50 //constante définissant la longueur du nom du joueur
 
 void clear_screen();
 
@@ -29,9 +32,13 @@ void afficher_carte();
 
 void demander_coup();
 
+void ajouter_joueur();
+
+void imprimer_fichier();
+
 int carte[MAX_TAB][MAX_TAB];
 char coup_joue[MAX_TAB][MAX_TAB];
-//toutes les déclarations de fonctions ci-dessus sont faites pour être utilisées dans les différentes fonctions qui suivent
+//toutes les déclarations de fonctions ci-dessus sont faites pour être réutilisées dans d'autres fonctions
 
 void clear_screen() {
 #ifdef __unix__
@@ -41,7 +48,7 @@ void clear_screen() {
 #else
     system("clear");
 #endif
-}
+}//fonction permettant de nettoyer l'écran en fonction du système d'exploitation
 
 int menu_accueil() {
     int choix = 0;
@@ -90,17 +97,17 @@ void menu_aide() {
 
     printf("\nAIDE\n");
     printf("=====\n");
-    printf("Vous trouverez un tutoriel video via https://www.youtube.com/watch?v=klO6vPWPkzE\n\n");
+    printf("Vous trouverez un tutoriel vidéo via https://www.youtube.com/watch?v=klO6vPWPkzE\n\n");
 
-    printf("Voici quelques regles pour jouer a la Bataille Navale\n\n");
+    printf("Voici quelques règles pour jouer à la Bataille Navale\n\n");
 
-    printf("Vous annoncerez a tour de role une case de la grille que vous souhaitez attaquer\n");
+    printf("Vous annoncerez à tour de role une case de la grille que vous souhaitez attaquer\n");
     printf("Vous commencerez par saisir la colonne puis la ligne que vous désirez attaquer\n");
-    printf("Lorsque vous ratez votre cible, le jeu annoncera 'Manque' et un 0 apparaitra sur la grille de jeu\n");
-    printf("Lorsque vous atteignez votre cible, le jeu annoncera 'Touche' et un X apparaitra sur la grille de jeu\n");
-    printf("Lorsque vous abattez votre cible, le jeu annoncera 'Touche-coule' un # apparaitra sur la grille de jeu\n");
+    printf("Lorsque vous ratez votre cible, le jeu annoncera 'MANQUE !' et un 0 apparaîtra sur la grille de jeu\n");
+    printf("Lorsque vous atteignez votre cible, le jeu annoncera 'TOUCHE !' et un X apparaîtra sur la grille de jeu\n");
+    printf("Lorsque vous abattez votre cible, le jeu annoncera 'TOUCHE-COULE !' un # apparaitra sur la grille de jeu\n");
     printf("Le but du jeu est de couler tous les bateaux de votre adversaire avant que celui-ci ne coule tous les votres\n");
-    printf("Vous avez la possibilite de jouer le coup 'Q' pour quitter la partie en cours de jeu\n\n");
+    printf("Vous avez la possibilité de jouer le coup 'Q' pour quitter la partie en cours de jeu\n\n");
     if (continuer_aide() == 1) {
         printf("Description de la flotte:\n");
         printf("- Un zodiaque de 1 case\n");
@@ -130,8 +137,8 @@ void menu_jouer() {
     char choix_coup[2];
     char retourner_menu_accueil[3];
 
-    init_carte();
-    init_coup();
+    init_carte(); //initialisation de la carte et du coup à 0
+    init_coup(); //
 
     printf("JOUER\n");
     printf("=====\n\n");
@@ -143,7 +150,6 @@ void menu_jouer() {
         printf("Score : %d\n", score);
         afficher_coup();
         printf("\n");
-        //afficher_carte();
         demander_coup(choix_coup);
         printf("\n");
         clear_screen();
@@ -151,7 +157,7 @@ void menu_jouer() {
         switch (choix_coup[0]) {
             case 'A':
             case 'a':
-                // A représente la colonne 0 du tableau
+                // A représente la colonne 0 du tableau et ainsi de suite
                 index_col = 0;
                 break;
             case 'B':
@@ -190,9 +196,15 @@ void menu_jouer() {
             case 'j':
                 index_col = 9;
                 break;
-            case 'O':
-            case 'o':
-                menu_aide();
+            case 'Q':
+            case 'q':
+                printf("\nSouhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+                fflush(stdin);
+                scanf("%s", retourner_menu_accueil);
+                if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+                    clear_screen();
+                    menu_accueil();
+                }
                 break;
         }
         if (choix_coup[0] != 'Q' && choix_coup[0] != 'q') {
@@ -212,25 +224,36 @@ void menu_jouer() {
             }
         }
         test_fin_partie();
-    } while (choix_coup[0] != 'q' && choix_coup[0] != 'Q' && score > 0 && test_fin_partie() < 5);
+    } while (score > 0 && test_fin_partie() < 5);
 
     if (score >= 1) {
         printf("Score : %d\n", score);
         afficher_coup();
-        printf("\nBRAVO ! Vous avez gagne !\n\n");
+        printf("\nBRAVO ! Vous avez gagné !\n\n");
 
         FILE *fp;
-        float marks;
 
-        fp = fopen("scores.txt", "a+");
+        fp = fopen("scores.txt", "w+");
 
-        if (fp == NULL) {
+        if(fp == NULL) {
             printf("Impossible d'ouvrir le fichier\n");
             exit(1);
         }
+        fflush(stdin);
 
-        fprintf(fp, "Nom : %s\t Score : %d\n", nom_joueur, score);
+        ajouter_joueur(nom_joueur,score);
+        imprimer_fichier(fp);
+
+
         fclose(fp);
+
+        printf("Souhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+        fflush(stdin);
+        scanf("%s", retourner_menu_accueil);
+        if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+            clear_screen();
+            menu_accueil();
+        }
     }
     if (score < 1) {
         printf("\nDOMMAGE ! Vous avez perdu !\n\n");
@@ -238,14 +261,7 @@ void menu_jouer() {
         fflush(stdin);
         scanf("%s", retourner_menu_accueil);
         if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
-            menu_accueil();
-        }
-    }
-    if (choix_coup[0] == 'q' || choix_coup[0] == 'Q') {
-        printf("\nSouhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
-        fflush(stdin);
-        scanf("%s", retourner_menu_accueil);
-        if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+            clear_screen();
             menu_accueil();
         }
     }
@@ -380,7 +396,25 @@ void demander_coup(char monchoix[2]) {
     scanf("%s", monchoix);
 }
 
+typedef struct{
+    int score;
+    char nom[MAX_CHAR_NAME];
+} t_score;
+t_score scores[NOMBRE_SCORE_MAX] = {0,0};
+
+void ajouter_joueur(char nom[MAX_CHAR_NAME] , int score) {
+
+}
+
+void imprimer_fichier(FILE *fp) {
+    for (int i = 0; i < NOMBRE_SCORE_MAX; i++) {
+        fprintf(fp, "Nom: %s\t score: %d \n", scores[i].nom, scores[i].score);
+    }
+}
+
 int main(int argc, char *argv[]) {
+
+    SetConsoleOutputCP(65001);
 
     menu_accueil();
 
