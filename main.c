@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
+#include <time.h>
 
 #define MAX_TAB 10 //constante du nombre de lignes et colonnes de la grille de jeu
 #define DECAL 49 //constante servant à décaler la valeur du coup joué en un entier
+#define NOMBRE_CARTE 5 // nombre de cartes différentes qui peuvent être générées
 #define NOMBRE_SCORE_MAX 10 //constante du nombre maximum de scores affichables
 #define MAX_CHAR_NAME 50 //constante définissant la longueur du nom du joueur
 
@@ -36,6 +38,8 @@ void ajouter_joueur();
 
 void imprimer_fichier();
 
+void imprimer_console();
+
 int carte[MAX_TAB][MAX_TAB];
 char coup_joue[MAX_TAB][MAX_TAB];
 //toutes les déclarations de fonctions ci-dessus sont faites pour être réutilisées dans d'autres fonctions
@@ -52,6 +56,7 @@ void clear_screen() {
 
 int menu_accueil() {
     int choix = 0;
+    char retourner_menu_accueil[3];
     printf("BATAILLE NAVALE\n");
     printf("================\n\n");
 
@@ -77,6 +82,15 @@ int menu_accueil() {
         case 3:
             clear_screen();
             printf("MEILLEURS SCORES\n");
+            printf("================\n\n");
+            imprimer_console();
+            printf("\nSouhaitez-vous retourner au menu d'accueil (Oui/Non) ?\n");
+            fflush(stdin);
+            scanf("%s", retourner_menu_accueil);
+            if (strcmp(retourner_menu_accueil, "Oui") == 0 || strcmp(retourner_menu_accueil, "oui") == 0) {
+                clear_screen();
+                menu_accueil();
+            }
             break;
         default:
             break;
@@ -239,6 +253,7 @@ void menu_jouer() {
             printf("Impossible d'ouvrir le fichier\n");
             exit(1);
         }
+
         fflush(stdin);
 
         ajouter_joueur(nom_joueur,score);
@@ -343,21 +358,105 @@ int touche_coule(int valeur) {
 }
 
 void init_carte() {
-    carte[1][1] = 100;
-    carte[1][3] = 200;
-    carte[2][3] = 200;
-    carte[1][5] = 300;
-    carte[2][5] = 300;
-    carte[3][5] = 300;
-    carte[1][7] = 400;
-    carte[2][7] = 400;
-    carte[3][7] = 400;
-    carte[4][7] = 400;
-    carte[8][0] = 500;
-    carte[8][1] = 500;
-    carte[8][2] = 500;
-    carte[8][3] = 500;
-    carte[8][4] = 500;
+    for (int x = 0; x<MAX_TAB; x++) {
+        for (int y = 0; y<MAX_TAB; y++) {
+            carte[x][y] = 0;
+        }
+    }
+
+    int r = rand() % NOMBRE_CARTE;
+
+    printf("SALUT");
+
+    switch (r) {
+        case 0:
+            carte[1][1] = 100;
+            carte[1][3] = 200;
+            carte[2][3] = 200;
+            carte[1][5] = 300;
+            carte[2][5] = 300;
+            carte[3][5] = 300;
+            carte[1][7] = 400;
+            carte[2][7] = 400;
+            carte[3][7] = 400;
+            carte[4][7] = 400;
+            carte[8][0] = 500;
+            carte[8][1] = 500;
+            carte[8][2] = 500;
+            carte[8][3] = 500;
+            carte[8][4] = 500;
+            break;
+        case 1:
+            carte[7][7] = 100;
+            carte[2][5] = 200;
+            carte[2][6] = 200;
+            carte[1][1] = 300;
+            carte[1][2] = 300;
+            carte[1][3] = 300;
+            carte[9][5] = 400;
+            carte[9][6] = 400;
+            carte[9][7] = 400;
+            carte[9][8] = 400;
+            carte[4][8] = 500;
+            carte[5][8] = 500;
+            carte[6][8] = 500;
+            carte[7][8] = 500;
+            carte[8][8] = 500;
+            break;
+        case 2:
+            carte[7][6] = 100;
+            carte[9][5] = 200;
+            carte[9][6] = 200;
+            carte[6][4] = 300;
+            carte[7][4] = 300;
+            carte[8][4] = 300;
+            carte[3][4] = 400;
+            carte[3][5] = 400;
+            carte[3][6] = 400;
+            carte[3][7] = 400;
+            carte[0][5] = 500;
+            carte[0][6] = 500;
+            carte[0][7] = 500;
+            carte[0][8] = 500;
+            carte[0][9] = 500;
+            break;
+        case 3:
+            carte[9][2] = 100;
+            carte[1][8] = 200;
+            carte[1][9] = 200;
+            carte[1][2] = 300;
+            carte[2][2] = 300;
+            carte[3][2] = 300;
+            carte[5][2] = 400;
+            carte[5][3] = 400;
+            carte[5][4] = 400;
+            carte[5][5] = 400;
+            carte[3][5] = 500;
+            carte[3][6] = 500;
+            carte[3][7] = 500;
+            carte[3][8] = 500;
+            carte[3][9] = 500;
+            break;
+        case 4:
+            carte[2][8] = 100;
+            carte[8][3] = 200;
+            carte[8][4] = 200;
+            carte[2][4] = 300;
+            carte[2][5] = 300;
+            carte[2][6] = 300;
+            carte[4][0] = 400;
+            carte[5][0] = 400;
+            carte[6][0] = 400;
+            carte[7][0] = 400;
+            carte[0][3] = 500;
+            carte[0][4] = 500;
+            carte[0][5] = 500;
+            carte[0][6] = 500;
+            carte[0][7] = 500;
+            break;
+        default:
+            break;
+    }
 }
 
 void init_coup() {
@@ -412,7 +511,31 @@ void imprimer_fichier(FILE *fp) {
     }
 }
 
+void imprimer_console() {
+    int buffer_size = 1000;
+    char buffer[buffer_size];
+    int totalRead;
+
+    FILE *fp;
+    fp = fopen("scores.txt", "r");
+
+    if(fp == NULL)
+    {
+        printf("Ouverture du fichier impossible.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while(fgets(buffer, buffer_size, fp) != NULL)
+    {
+        totalRead = strlen(buffer);
+        buffer[totalRead - 1] = buffer[totalRead - 1] == '\n' ? '\0' : buffer[totalRead - 1];
+        printf("%s\n", buffer);
+    }
+    fclose(fp);
+}
+
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
 
     SetConsoleOutputCP(65001);
 
